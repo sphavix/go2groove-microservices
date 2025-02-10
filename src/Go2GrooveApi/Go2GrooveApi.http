@@ -1,0 +1,6 @@
+@Go2GrooveApi_HostAddress = http://localhost:5228
+
+GET {{Go2GrooveApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
