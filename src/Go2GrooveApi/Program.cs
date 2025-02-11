@@ -1,6 +1,7 @@
 using Go2GrooveApi.Domain.Models;
 using Go2GrooveApi.Endpoints;
 using Go2GrooveApi.Persistence;
+using Go2GrooveApi.Services.Accounts;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -18,6 +19,8 @@ builder.Services.AddDbContext<Go2GrooveDbContext>(x => x.UseSqlite("Data Source=
 builder.Services.AddIdentityCore<ApplicationUser>()
     .AddEntityFrameworkStores<Go2GrooveDbContext>()
     .AddDefaultTokenProviders();
+
+builder.Services.AddScoped<TokenService>();
 
 builder.Services.AddAuthentication(options =>
 {

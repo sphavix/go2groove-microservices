@@ -2,6 +2,7 @@
 using Go2GrooveApi.Domain.Dtos;
 using Go2GrooveApi.Domain.Models;
 using Go2GrooveApi.Services;
+using Go2GrooveApi.Services.Accounts;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -34,6 +35,7 @@ namespace Go2GrooveApi.Endpoints
 
                 var newUser = new ApplicationUser
                 {
+                    UserName = model.Email,
                     Email = model.Email,
                     FullName = model.FullName,
                     ProfilePicture = picture
@@ -48,6 +50,33 @@ namespace Go2GrooveApi.Endpoints
 
                 return Results.Ok(Response<string>.Success("", "User registered successfully"));
             }).DisableAntiforgery();
+
+            // login endpoint
+            endpointsGroup.MapPost("/login", async (UserManager<ApplicationUser> _userManager, TokenService _tokenService, LoginDto model) =>
+            {
+                if (model is null)
+                {
+                    return Results.BadRequest(Response<string>.Failure("Please enter login details"));
+                }
+
+                var user = await _userManager.FindByEmailAsync(model.Email);
+
+                if (user is null)
+                {
+                    return Results.BadRequest(Response<string>.Failure("User cannot be found"));
+                }
+
+                var results = await _userManager.CheckPasswordAsync(user!, model.Password);
+
+                if (!results)
+                {
+                    return Results.BadRequest(Response<string>.Failure("Incorrect Username or Password"));
+                }
+
+                var token = _tokenService.GenerateToken(user.Id, user.UserName);
+
+                return Results.Ok(Response<string>.Success(token, "Successfully logged in!"));
+            });
 
             return endpointsGroup;
         }
