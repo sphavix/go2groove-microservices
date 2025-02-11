@@ -1,10 +1,12 @@
 ﻿using Go2GrooveApi.Common;
 using Go2GrooveApi.Domain.Dtos;
 using Go2GrooveApi.Domain.Models;
+using Go2GrooveApi.Extensions;
 using Go2GrooveApi.Services;
 using Go2GrooveApi.Services.Accounts;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Go2GrooveApi.Endpoints
 {
@@ -14,6 +16,7 @@ namespace Go2GrooveApi.Endpoints
         {
             var endpointsGroup = app.MapGroup("/api/accounts").WithTags("accounts");
 
+            // register endpoint
             endpointsGroup.MapPost("/register", async (HttpContext context, UserManager<ApplicationUser> _userManager,
                 [AsParameters] RegisterDto model, IFormFile? profilePicture) =>
             {
@@ -77,6 +80,17 @@ namespace Go2GrooveApi.Endpoints
 
                 return Results.Ok(Response<string>.Success(token, "Successfully logged in!"));
             });
+
+            // get current logged on user
+            endpointsGroup.MapGet("/me", async (HttpContext context, UserManager<ApplicationUser> _userManager) =>
+            {
+                var currentLoggedInUserId = context.User.GetUserId()!;
+
+                var currentLoggedInUser = await _userManager.Users.SingleOrDefaultAsync(x => x.Id == currentLoggedInUserId.ToString());
+
+                return Results.Ok(Response<ApplicationUser>.Success(currentLoggedInUser!, "Currently logged in!"));
+            }).RequireAuthorization();
+
 
             return endpointsGroup;
         }

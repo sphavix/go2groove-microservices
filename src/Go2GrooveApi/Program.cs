@@ -1,5 +1,6 @@
 using Go2GrooveApi.Domain.Models;
 using Go2GrooveApi.Endpoints;
+using Go2GrooveApi.Hubs;
 using Go2GrooveApi.Persistence;
 using Go2GrooveApi.Services.Accounts;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -38,9 +39,37 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("JwtSettings:Key"))
     };
+
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+            var path = context.HttpContext.Request.Path;
+
+            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+            {
+                context.Token = accessToken;
+            }
+            return Task.CompletedTask;
+        }
+    };
 });
 builder.Services.AddAuthorization();
 builder.Services.AddAntiforgery();
+
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(builder =>
+    {
+        builder.WithOrigins("http://localhost:4200", "https://localhost:4200")
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials();
+    });
+});
+
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 
@@ -51,12 +80,19 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
+app.UseCors(x => x.AllowAnyHeader()
+    .AllowAnyMethod()
+    .AllowCredentials()
+    .WithOrigins("http://localhost:4200", "https://localhost:4200"));
 
 app.UseStaticFiles();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapHub<ChatHub>("hubs/chat");
+
 app.UseAntiforgery();
 app.MapAccountsEndpoints();
 

@@ -58,7 +58,7 @@ namespace Go2GrooveApi.Hubs
         {
             int pageSize = 10;
 
-            var userName = Context.User!.GetUserName();
+            var userName = Context.User!.Identity.Name;
 
             var currentUser = await _userManager.FindByNameAsync(userName);
 
@@ -98,7 +98,7 @@ namespace Go2GrooveApi.Hubs
 
         public async Task SendMessage(MessageDto message)
         {
-            var senderId = Context.User!.GetUserName();
+            var senderId = Context.User!.Identity.Name;
 
             var receiverId = message.ReceiverId;
 
@@ -119,7 +119,7 @@ namespace Go2GrooveApi.Hubs
 
         public async Task NotifyTyping(string receiverUserName)
         {
-            var senderUserName = Context.User!.GetUserName();
+            var senderUserName = Context.User!.Identity.Name;
 
             if(senderUserName is null)
             {
@@ -136,7 +136,7 @@ namespace Go2GrooveApi.Hubs
 
         public override async Task OnDisconnectedAsync(Exception exception)
         {
-            var userName = Context.User!.GetUserName();
+            var userName = Context.User!.Identity.Name;
 
             onlineUsers.TryRemove(userName, out _);
 
@@ -145,7 +145,7 @@ namespace Go2GrooveApi.Hubs
 
         private async Task<IEnumerable<OnlineUserDto>> GetAllUsers()
         {
-            var userName = Context.User!.GetUserName();
+            var userName = Context.User!.Identity.Name;
 
             var onlineUsersSet = new HashSet<string>(onlineUsers.Keys);
 
