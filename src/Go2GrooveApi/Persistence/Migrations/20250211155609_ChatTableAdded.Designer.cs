@@ -3,6 +3,7 @@ using System;
 using Go2GrooveApi.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Go2GrooveApi.Persistence.Migrations
 {
     [DbContext(typeof(Go2GrooveDbContext))]
-    partial class Go2GrooveDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250211155609_ChatTableAdded")]
+    partial class ChatTableAdded
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.12");

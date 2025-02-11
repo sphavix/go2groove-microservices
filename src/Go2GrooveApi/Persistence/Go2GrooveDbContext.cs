@@ -7,5 +7,9 @@ namespace Go2GrooveApi.Persistence
     public class Go2GrooveDbContext(DbContextOptions<Go2GrooveDbContext> options) 
         : IdentityDbContext<ApplicationUser>(options)
     {
+        
+        public DbSet<Chat> Chats { get; set; }
     }
+
+    
 }
