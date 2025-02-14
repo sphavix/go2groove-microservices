@@ -7,13 +7,35 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(cfg =>
+{
+    cfg.AddSecurityDefinition("bearerAuth", new OpenApiSecurityScheme
+    {
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer"
+    });
+
+    cfg.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "bearerAuth"
+                }
+            },[]
+        }
+    });
+});
 
 builder.Services.AddDbContext<Go2GrooveDbContext>(x => x.UseSqlite("Data Source=Go2Groove.db"));
 
@@ -22,6 +44,8 @@ builder.Services.AddIdentityCore<ApplicationUser>()
     .AddDefaultTokenProviders();
 
 builder.Services.AddScoped<TokenService>();
+builder.Services.AddScoped<IUserContext, UserContext>();
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddAuthentication(options =>
 {
@@ -56,7 +80,6 @@ builder.Services.AddAuthentication(options =>
     };
 });
 builder.Services.AddAuthorization();
-builder.Services.AddAntiforgery();
 
 builder.Services.AddCors(options =>
 {
@@ -93,7 +116,6 @@ app.UseAuthorization();
 
 app.MapHub<ChatHub>("hubs/chat");
 
-app.UseAntiforgery();
 app.MapAccountsEndpoints();
 
 app.Run();

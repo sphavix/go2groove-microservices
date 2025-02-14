@@ -11,7 +11,7 @@ namespace Go2GrooveApi.Extensions
 
         public static Guid GetUserId(this ClaimsPrincipal principal)
         {
-            return Guid.Parse(principal.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new Exception("Cannot find the userId"));
+            return Guid.Parse(principal.Claims?.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value/*FindFirstValue(ClaimTypes.NameIdentifier!)*/ ?? throw new Exception("Cannot find the userId"));
         }
     }
 }

@@ -1,7 +1,6 @@
 ﻿using Go2GrooveApi.Common;
 using Go2GrooveApi.Domain.Dtos;
 using Go2GrooveApi.Domain.Models;
-using Go2GrooveApi.Extensions;
 using Go2GrooveApi.Services;
 using Go2GrooveApi.Services.Accounts;
 using Microsoft.AspNetCore.Identity;
@@ -82,14 +81,37 @@ namespace Go2GrooveApi.Endpoints
             });
 
             // get current logged on user
-            endpointsGroup.MapGet("/me", async (HttpContext context, UserManager<ApplicationUser> _userManager) =>
+            endpointsGroup.MapGet("/me", async (IUserContext _httpContext, UserManager<ApplicationUser> _userManager) =>
             {
-                var currentLoggedInUserId = context.User.GetUserId()!;
+                try
+                {
+                    var currentUser = _httpContext.GetCurrentUser();
 
-                var currentLoggedInUser = await _userManager.Users.SingleOrDefaultAsync(x => x.Id == currentLoggedInUserId.ToString());
+                    if (currentUser == null)
+                    {
+                        return Results.Unauthorized();
+                    }
 
-                return Results.Ok(Response<ApplicationUser>.Success(currentLoggedInUser!, "Currently logged in!"));
-            }).RequireAuthorization();
+                    var currentLoggedInUserId = currentUser.Id;
+
+                    var currentLoggedInUser = await _userManager.Users.SingleOrDefaultAsync(x => x.Id == currentLoggedInUserId.ToString());
+
+                    if (currentLoggedInUser == null)
+                    {
+                        return Results.NotFound(Response<ApplicationUser>.Failure("User was not found!"));
+                    }
+
+                    return Results.Ok(Response<ApplicationUser>.Success(currentLoggedInUser, "Currently logged in!"));
+                }
+                catch (UnauthorizedAccessException ex)
+                {
+                    return Results.Unauthorized(); // Return 401 if the user is not authenticated
+                }
+                catch (InvalidOperationException ex)
+                {
+                    return Results.BadRequest(ex.Message); // Return 400 for missing claims or other issues
+                }
+            });
 
 
             return endpointsGroup;
